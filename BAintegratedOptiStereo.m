@@ -1,0 +1,29 @@
+function [angof Tof Change my3DPointsEstimate]= BAintegratedOptiAcous(ncam,angos,Tos,Rc,Tc,my3DinitialPoints,dmaskson,dmask,myX,myY,myXson,myYson,param)
+    N= size(my3DinitialPoints,2);
+
+    K= [param.opt.fx    0       param.opt.cx
+    0            param.opt.fy   param.opt.cy
+    0                   0                 1];
+    save finalFile
+    save Temp3 Rc Tc dmaskson dmask myX myY myXson myYson K ncam N param
+    X_init= [angos Tos my3DinitialPoints(1,:) my3DinitialPoints(2,:) my3DinitialPoints(3,:)];
+    numberofvariables=length(X_init);
+%         'TolFun',1e-6,...
+%         'TolX',1e-6,...
+%         'TolX',1e-8,...
+    options = optimset('LargeScale','off',...
+        'TolFun',1e-8,...
+        'TolX',1e-8,...
+        'MaxFunEvals',25*numberofvariables,...
+        'MaxIter', 500,...
+        'LevenbergMarquardt','on',...
+        'Display', 'iter');
+    [X_estim,resnorm,residual,exitflag,output,lambda,jacobian] = lsqnonlin(@BAtypeFinalOpt, X_init);
+
+    Change= X_init-X_estim;
+    angof= X_estim(1:3*ncam);
+    Tof= X_estim(3*ncam+1:6*ncam);
+%     my3DPointsEstimate= [X_estim(6*ncam+1:6*ncam+N-1);X_estim(6*ncam+N:6*ncam+N-1+N);X_estim(6*ncam+2*N:6*ncam+N-1+2*N)];
+    my3DPointsEstimate= [X_estim(6*ncam+1:6*ncam+1+N-1);X_estim(6*ncam+1+N:6*ncam+1+N-1+N);X_estim(6*ncam+1+2*N:6*ncam+1+N-1+2*N)];
+
+end
